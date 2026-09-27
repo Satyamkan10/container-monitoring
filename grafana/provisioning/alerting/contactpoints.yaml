@@ -1,0 +1,18 @@
+apiVersion: 1
+
+# Recipients come from GF_ALERT_TO in .env (semicolon-separated).
+# You can also hard-code addresses here, then: docker compose restart grafana
+contactPoints:
+  - orgId: 1
+    name: email-ops
+    receivers:
+      - uid: email_ops_recv
+        type: email
+        settings:
+          addresses: ${GF_ALERT_TO}
+          singleEmail: true
+
+policies:
+  - orgId: 1
+    receiver: email-ops
+    group_by: ['alertname', 'cgroup_name']

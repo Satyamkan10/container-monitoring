@@ -1,0 +1,108 @@
+{
+  "uid": "server-containers",
+  "title": "Server Containers - Live",
+  "tags": ["containers", "netdata"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Running containers",
+      "gridPos": { "h": 5, "w": 8, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PROM" },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "PROM" },
+          "expr": "count(count by (cgroup_name)(netdata_cgroup_pids_current_pids_average))" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "none" }
+    },
+    {
+      "id": 2,
+      "type": "gauge",
+      "title": "Host memory used %",
+      "gridPos": { "h": 5, "w": 8, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PROM" },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "PROM" },
+          "expr": "(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent", "min": 0, "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null }, { "color": "orange", "value": 75 }, { "color": "red", "value": 90 } ] }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 3,
+      "type": "gauge",
+      "title": "Host swap used %",
+      "gridPos": { "h": 5, "w": 8, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PROM" },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "PROM" },
+          "expr": "(1 - node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes) * 100" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent", "min": 0, "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null }, { "color": "orange", "value": 50 }, { "color": "red", "value": 80 } ] }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "CPU % per container",
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 5 },
+      "datasource": { "type": "prometheus", "uid": "PROM" },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "PROM" },
+          "expr": "sum by (cgroup_name)(netdata_cgroup_cpu_percentage_average)", "legendFormat": "{{cgroup_name}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "max"] } }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Memory per container",
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 5 },
+      "datasource": { "type": "prometheus", "uid": "PROM" },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "PROM" },
+          "expr": "netdata_cgroup_mem_usage_MiB_average{dimension=\"ram\"} * 1048576", "legendFormat": "{{cgroup_name}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "max"] } }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "PIDs per container (leak detector)",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 14 },
+      "datasource": { "type": "prometheus", "uid": "PROM" },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "PROM" },
+          "expr": "netdata_cgroup_pids_current_pids_average", "legendFormat": "{{cgroup_name}}" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "thresholdsStyle": { "mode": "line" } },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null }, { "color": "red", "value": 500 } ] }
+        }
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "max"] } }
+    }
+  ]
+}

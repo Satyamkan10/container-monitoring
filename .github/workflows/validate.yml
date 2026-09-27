@@ -1,0 +1,32 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compose config
+        run: |
+          cp .env.example .env
+          docker compose config -q
+
+      - name: Prometheus config
+        run: |
+          docker run --rm --entrypoint promtool \
+            -v "$PWD/prometheus:/cfg:ro" prom/prometheus:v2.55.1 \
+            check config /cfg/prometheus.yml
+
+      - name: Dashboard JSON
+        run: jq empty grafana/dashboards/*.json
+
+      - name: YAML lint
+        run: |
+          pip install --quiet yamllint
+          yamllint -d '{extends: relaxed, rules: {line-length: disable}}' \
+            docker-compose.yml prometheus grafana/provisioning .github
